@@ -5,6 +5,10 @@
 
 ```groovy
 buildscript {
+    repositories {
+        mavenCentral()
+    }
+
     dependencies {
         classpath 'cn.yerl.gradle:profile-plugin:1.0.0'
     }
