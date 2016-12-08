@@ -1,19 +1,4 @@
-group 'cn.yerl.gradle'
 version '1.0.0'
-
-apply plugin: 'groovy'
-
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile localGroovy()
-    compile gradleApi()
-}
 
 apply plugin: 'nexus'
 
@@ -26,11 +11,6 @@ nexus {
     signatory {
         keyId project.ext["signatory.keyId"]
         password project.ext["signatory.password"]
-    }
-
-    archive {
-        sources true
-        doc true
     }
 
     pom {

@@ -1,1 +1,35 @@
-group 'cn.yerl.gradle'
+subprojects{
+    group 'cn.yerl.gradle'
+
+    apply plugin: 'groovy'
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        compile localGroovy()
+        compile gradleApi()
+    }
+
+    buildscript {
+        repositories {
+            mavenLocal()
+            mavenCentral()
+        }
+
+        dependencies {
+            classpath 'cn.yerl.gradle:nexus-plugin:+'
+        }
+    }
+}

@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'cn.yerl.gradle:profile-plugin:1.0.0'
+        classpath 'cn.yerl.gradle:profile-plugin:+'
     }
 }
 
@@ -23,7 +23,7 @@ profile {
     // BuildProfile类的包名
     classPackage 'cn.yerl.example'
     // buildprofile.properties的文件名
-    propertiesFileName 'buildprofile'
+    profileFileName 'buildprofile'
 
     // 默认配置
     defaultProfile {
@@ -82,13 +82,9 @@ profile {
 public class IndexController {
     @GetMapping("/index")
     public ModelAndView index() throws IOException {
-        // 使用Properties类读取buildprofile.properties的配置
-        Properties properties = new Properties();
-        InputStream profileFileStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("buildprofile.properties");
-        properties.load(profileFileStream);
-
+        // 读取buildprofile.properties的配置
         Map<String, Object> model = new HashMap<>();
-        model.put("hello", properties.get("hello"));
+        model.put("hello", BuildProfile.get("hello"));
 
         // 直接使用BuildProfile类就可以了
         return new ModelAndView(BuildProfile.INDEX_FILE, model);
@@ -140,3 +136,64 @@ public class IndexController {
     ....
 </beans>
 ```
+
+## Nexus Plugin
+　　Nexus Plugin用于将jar包等发布到nexus管理器中。当前Nexus Plugin已兼容Android Studio。
+
+```groovy
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'cn.yerl.gradle:nexus-plugin:+'
+    }
+}
+
+apply plugin: 'nexus'
+
+nexus {
+    repository {
+        username project.ext["nexus.username"]
+        password project.ext["nexus.password"]
+    }
+
+    signatory {
+        keyId project.ext["signatory.keyId"]
+        password project.ext["signatory.password"]
+    }
+
+    archive {
+        sources true
+        doc true
+    }
+
+    pom {
+        name 'Profile Plugin'
+        description 'Profile configuration for Java Web Project'
+        url 'https://github.com/alan-yeh/gradle-plugins'
+
+        scm {
+            url 'https://github.com/alan-yeh/gradle-plugins'
+            connection 'scm:https://github.com/alan-yeh/gradle-plugins.git'
+            developerConnection 'scm:git@github.com:alan-yeh/gradle-plugins.git'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                name 'Alan Yeh'
+                email 'alan@yerl.cn'
+            }
+        }
+    }
+}
+```
+
