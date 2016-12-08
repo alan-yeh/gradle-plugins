@@ -6,12 +6,6 @@ subprojects{
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
 
-    buildscript {
-        repositories {
-            mavenCentral()
-        }
-    }
-
     repositories {
         mavenLocal()
         mavenCentral()
