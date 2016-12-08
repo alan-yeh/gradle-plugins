@@ -1,5 +1,5 @@
 group 'cn.yerl.gradle'
-version '1.0.4'
+version '1.0.0'
 
 apply plugin: 'groovy'
 
@@ -14,7 +14,6 @@ dependencies {
     compile localGroovy()
     compile gradleApi()
 }
-
 
 apply plugin: 'nexus'
 
@@ -35,8 +34,8 @@ nexus {
     }
 
     pom {
-        name 'Profile Plugin'
-        description 'Profile configuration for Java Web Project'
+        name 'Nexus Plugin'
+        description 'Plugin for upload archives to nexus'
         url 'https://github.com/alan-yeh/gradle-plugins'
 
         scm {
