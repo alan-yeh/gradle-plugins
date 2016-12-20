@@ -1,4 +1,5 @@
 rootProject.name = 'gradle-plugins'
 include 'profile-plugin'
 include 'nexus-plugin'
+include 'android-config-plugin'
 
