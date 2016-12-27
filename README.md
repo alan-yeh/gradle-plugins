@@ -75,7 +75,7 @@ profile {
 
 ![](assets/project-structure.png)
 
-　　同时，profile目录里会根据flavor配置而生成类（BuildProfile）和properties（buildprofile.properties），在main目录中，可以之间引用这两个文件。
+　　同时，profile目录里会根据flavor配置而生成类（BuildProfile）和properties（buildprofile.properties），在java代码中中，可以之间使用用这两个文件。
 
 ```java
 @Controller
