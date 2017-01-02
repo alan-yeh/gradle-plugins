@@ -1,6 +1,8 @@
-subprojects{
+allprojects{
     group 'cn.yerl.gradle'
+}
 
+subprojects{
     apply plugin: 'groovy'
 
     sourceCompatibility = 1.6

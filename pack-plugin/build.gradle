@@ -1,0 +1,41 @@
+version '1.0.0'
+
+apply plugin: 'nexus'
+
+nexus {
+    repository {
+        username project.ext["nexus.username"]
+        password project.ext["nexus.password"]
+    }
+
+    signatory {
+        keyId project.ext["signatory.keyId"]
+        password project.ext["signatory.password"]
+    }
+
+    pom {
+        name 'Pack Plugin'
+        description 'Plugin for packing archives with template'
+        url 'https://github.com/alan-yeh/gradle-plugins'
+
+        scm {
+            url 'https://github.com/alan-yeh/gradle-plugins'
+            connection 'scm:https://github.com/alan-yeh/gradle-plugins.git'
+            developerConnection 'scm:git@github.com:alan-yeh/gradle-plugins.git'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                name 'Alan Yeh'
+                email 'alan@yerl.cn'
+            }
+        }
+    }
+}

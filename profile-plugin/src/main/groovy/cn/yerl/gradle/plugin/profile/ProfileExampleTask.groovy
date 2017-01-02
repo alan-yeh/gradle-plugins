@@ -4,7 +4,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Created by alan on 2016/12/5.
+ * Profile Example Task
+ * Created by Alan Yeh on 2016/12/5.
  */
 class ProfileExampleTask extends DefaultTask {
 

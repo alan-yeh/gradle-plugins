@@ -1,7 +1,7 @@
 package cn.yerl.gradle.plugin.profile
 
 /**
- * ProfileContainer
+ * Profile Container
  * Created by Alan Yeh on 2016/12/4.
  */
 class ProfileContainer {

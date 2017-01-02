@@ -10,7 +10,7 @@ import org.gradle.api.tasks.SourceSet
 import java.text.SimpleDateFormat
 
 /**
- * ProfilePlugin
+ * Profile Plugin
  * Created by Alan Yeh on 2016/11/9.
  */
 class ProfilePlugin implements Plugin<Project> {
