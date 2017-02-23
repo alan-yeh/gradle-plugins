@@ -1,5 +1,6 @@
 package cn.yerl.gradle.plugin.pack
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -17,8 +18,10 @@ public class PackPlugin implements Plugin<Project> {
     void apply(Project project) {
         PackExtension extension = project.extensions.create('pack', PackExtension);
 
-        project.afterEvaluate{
+        project.afterEvaluate {
+        }
 
+        project.afterEvaluate{
             File file = project.file(extension.template);
             if (!file.exists()){
                 throw new GradleException("Pack Plugin: Template[$file] is not exists.");
@@ -27,31 +30,43 @@ public class PackPlugin implements Plugin<Project> {
             Task archivesTask = project.tasks.findByName(extension.task);
             if (archivesTask == null){
                 throw new GradleException("Pack Plugin: Can't find task named $extension.task");
-            } 
-
-
-            // 将template复制到目标目录
-            Copy copyTemplateTask = project.task("copyTemplate", type: Copy) {
-                description = "Copy template to target path"
-                from extension.template
-                into extension.to
-            }
-            copyTemplateTask.group = TASK_GROUP
-
-
-            // 复制打包文件
-            Copy packTask = project.task("pack", type: Copy) {
-                description = "Copy archives and template to target path"
-                from archivesTask
-                into extension.to + File.separator + extension.templatePath
-            }
-            packTask.doLast{
-                println "Pack Plugin: Packed to path[${copyTemplateTask.destinationDir}]."
             }
 
+            Task packTask = project.task("pack", type: DefaultTask)
             packTask.group = TASK_GROUP
-            packTask.dependsOn(archivesTask)
-            packTask.dependsOn(copyTemplateTask)
+
+
+            int i = 1;
+            extension.destDirs.each {
+                int index = i ++;
+                String to = "$it"
+                // 将template复制到目标目录
+                Copy copyTemplateTask = project.task("copyTemplate_${index}", type: Copy) {
+                    from extension.template
+                    into to
+                }
+                copyTemplateTask.description = "Copy template to path [$copyTemplateTask.destinationDir]"
+                copyTemplateTask.group = TASK_GROUP
+                copyTemplateTask.dependsOn(archivesTask)
+
+
+                // 复制打包文件
+                Copy copyArchivesTask = project.task("copyArchives_${index}", type: Copy) {
+                    from archivesTask
+                    into to + File.separator + extension.templatePath
+                }
+                copyArchivesTask.description = "Copy archives to path [${copyArchivesTask.destinationDir}]"
+
+                copyArchivesTask.doLast{
+                    println "Pack Plugin: Packed to path[${copyTemplateTask.destinationDir}]."
+                }
+
+                copyArchivesTask.group = TASK_GROUP
+                copyArchivesTask.dependsOn(copyTemplateTask)
+                copyArchivesTask.dependsOn(archivesTask)
+
+                packTask.dependsOn(copyArchivesTask)
+            }
 
 
             // Example

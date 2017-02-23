@@ -222,6 +222,7 @@ class NexusPlugin implements Plugin<Project> {
                         description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
                         source = project.android.sourceSets.main.java.srcDirs
                         classpath += project.files(project.android.getBootClasspath().join(File.pathSeparator))
+                        options.encoding = "UTF-8"
                     }
 
                     Task task = project.task("androidJavadocJar", type: Jar) {

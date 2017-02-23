@@ -6,11 +6,15 @@ package cn.yerl.gradle.plugin.pack;
  */
 public class PackExtension {
     def methodMissing(String name, args) {
-        setProperty(name, args[0])
+        if (name == "to"){
+            destDirs.addAll((Collection)args)
+        }else {
+            setProperty(name, args[0])
+        }
     }
 
     String task;
     String template
     String templatePath = "/";
-    String to = "build/packed";
+    def destDirs = ["build/packed"];
 }
