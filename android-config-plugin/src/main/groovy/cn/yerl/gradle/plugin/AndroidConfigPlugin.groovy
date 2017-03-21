@@ -10,13 +10,13 @@ import org.gradle.api.Project
 class AndroidConfigPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        project.ext["compileSdkVersion"] = 23;
-        project.ext["buildToolsVersion"] = "23.0.3";
+        project.ext["compileSdkVersion"] = 23
+        project.ext["buildToolsVersion"] = "25.0.0"
 
-        project.ext["minSdkVersion"] = 17;
-        project.ext["targetSdkVersion"] = 23;
+        project.ext["minSdkVersion"] = 17
+        project.ext["targetSdkVersion"] = 23
 
-        project.ext["supportVersion"] = "23.4.0";
+        project.ext["supportVersion"] = "25.0.0"
     }
 
 }

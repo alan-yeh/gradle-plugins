@@ -38,7 +38,7 @@ public class PackPlugin implements Plugin<Project> {
 
             int i = 1;
             extension.destDirs.each {
-                int index = i ++;
+                int index = i ++
                 String to = "$it"
                 // 将template复制到目标目录
                 Copy copyTemplateTask = project.task("copyTemplate_${index}", type: Copy) {

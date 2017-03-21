@@ -199,7 +199,7 @@ public final class BuildProfile {
         clearDir(resourceDir);
 
         FileOutputStream out = new FileOutputStream(new File(resourceDir.path + File.separator + "${profileExt.profileFileName}.properties"));
-        out.write(builder.toString().getBytes(profileExt.encoding));
+        out.write(chinaToUnicode(builder.toString()).getBytes(profileExt.encoding));
         out.close();
     }
 
@@ -221,6 +221,20 @@ public final class BuildProfile {
             }
         }
     }
+
+    String chinaToUnicode(String str){
+        StringBuilder result = new StringBuilder()
+        for (int i = 0; i < str.length(); i++){
+            int chr = (int) str.charAt(i)
+            if(chr >= 19968 && chr <= 171941){ //汉字范围 \u4e00-\u9fa5 (中文)
+                result.append("\\u").append(Integer.toHexString(chr))
+            }else{
+                result.append(str.charAt(i))
+            }
+        }
+        return result
+    }
+
 }
 
 
