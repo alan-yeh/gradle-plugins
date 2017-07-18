@@ -3,10 +3,12 @@ package cn.yerl.gradle.plugin.profile
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 
+import java.lang.reflect.Field
 import java.text.SimpleDateFormat
 
 /**
@@ -22,7 +24,7 @@ class ProfilePlugin implements Plugin<Project> {
         this.project = project;
         project.plugins.apply(JavaPlugin);
 
-        ProfileExtension profileExt = project.extensions.create("profile", ProfileExtension);
+        ProfileExtension profileExt = project.extensions.create(ProfileExtension.NAME, ProfileExtension);
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         SourceSet profileSrc = javaConvention.sourceSets.create("profile");
@@ -79,9 +81,10 @@ public final class BuildProfile {
         return result;
     }
 """);
-        builder.append("""    public static final String PROJECT_GROUP = "${project.group}";\n""");
-        builder.append("""    public static final String PROJECT_VERSION = "${project.version}";\n""");
-        builder.append("""    public static final String FLAVOR = "$flavor";\n""")
+        builder.append("""    public static final String PROJECT_GROUP = "${project.group}";\r\n""");
+        builder.append("""    public static final String PROJECT_NAME = "${project.name}";\r\n""");
+        builder.append("""    public static final String PROJECT_VERSION = "${project.version}";\r\n""");
+        builder.append("""    public static final String FLAVOR = "$flavor";\r\n""")
 
         // 获取默认的config
         Map<String, Object> defaultFields = new HashMap<String, Object>();
@@ -107,16 +110,16 @@ public final class BuildProfile {
 
         // 写到builder
         if (!defaultFields.isEmpty()) {
-            builder.append("    // Fields from default profile.\n")
+            builder.append("    // Fields from default profile.\r\n")
             defaultFields.sort{a, b -> a.key.compareTo(b.key) }.each {
-                builder.append("    public static final ${it.value[0]} ${it.value[1]} = ${it.value[2]};\n");
+                builder.append("    public static final ${it.value[0]} ${it.value[1]} = ${it.value[2]};\r\n");
             }
         }
 
         if (!flavorFields.isEmpty()) {
-            builder.append("    // Fields from flavor: $flavor \n");
+            builder.append("    // Fields from flavor: $flavor \r\n");
             flavorFields.sort{a, b -> a.key.compareTo(b.key)}.each {
-                builder.append("    public static final ${it.value[0]} ${it.value[1]} = ${it.value[2]};\n");
+                builder.append("    public static final ${it.value[0]} ${it.value[1]} = ${it.value[2]};\r\n");
             }
         }
 
@@ -147,9 +150,11 @@ public final class BuildProfile {
 # Automatically generated file. DO NOT MODIFY
 #
 """);
-        builder.append("""PROJECT_GROUP = ${project.group}\n""");
-        builder.append("""PROJECT_VERSION = ${project.version}\n""");
-        builder.append("""FLAVOR = ${flavor}\n""");
+        builder.append("""PROJECT_GROUP = ${project.group}\r\n""");
+        builder.append("""PROJECT_NAME = ${project.name}\r\n""");
+        builder.append("""PROJECT_VERSION = ${project.version}\r\n""");
+        builder.append("""VERSION_DATE = ${format.format(new Date())}\r\n""")
+        builder.append("""FLAVOR = ${flavor}\r\n""");
 
         // 获取默认的config
         Map<String, Object> defaultFields = new HashMap<String, Object>();
@@ -176,18 +181,18 @@ public final class BuildProfile {
 
         // 写到builder
         if (!defaultFields.isEmpty()){
-            builder.append("""# Fields from default profile.\n""")
+            builder.append("""# Fields from default profile.\r\n""")
 
             defaultFields.sort{a, b -> a.key.compareTo(b.key)}.each {
-                builder.append("${it.key} = ${it.value}").append("\n");
+                builder.append("${it.key} = ${it.value}").append("\r\n");
             }
         }
 
         if (!flavorFields.isEmpty()){
-            builder.append("""# Fields from flavor: $flavor \n""")
+            builder.append("""# Fields from flavor: $flavor \r\n""")
 
             flavorFields.sort{a, b -> a.key.compareTo(b.key)}.each {
-                builder.append("${it.key} = ${it.value}").append("\n");
+                builder.append("${it.key} = ${it.value}").append("\r\n");
             }
         }
 
@@ -200,7 +205,7 @@ public final class BuildProfile {
 
         FileOutputStream out = new FileOutputStream(new File(resourceDir.path + File.separator + "${profileExt.profileFileName}.properties"));
         out.write(chinaToUnicode(builder.toString()).getBytes(profileExt.encoding));
-        out.close();
+        out.close()
     }
 
     private static void clearDir(File dir){

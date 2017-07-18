@@ -27,7 +27,7 @@ class NexusPlugin implements Plugin<Project> {
         project.plugins.apply(MavenPlugin)
         project.plugins.apply(SigningPlugin)
 
-        extension = project.extensions.create('nexus', NexusPluginExtension.class, project);
+        extension = project.extensions.create(NexusPluginExtension.NAME, NexusPluginExtension.class, project);
 
         configureArchiveTasks()
         configureSigning()

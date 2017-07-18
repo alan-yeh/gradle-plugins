@@ -157,16 +157,13 @@ nexus {
     repository {
         username project.ext["nexus.username"]
         password project.ext["nexus.password"]
+        // release 'your_nexus_release_repo_url'
+        // snapshot 'your_nexus_snapshot_repo_url'
     }
 
     signatory {
         keyId project.ext["signatory.keyId"]
         password project.ext["signatory.password"]
-    }
-
-    archive {
-        sources true
-        doc true
     }
 
     pom {

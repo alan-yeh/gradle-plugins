@@ -1,4 +1,4 @@
-version '1.0.8'
+version '1.0.0'
 
 apply plugin: 'nexus'
 
@@ -14,8 +14,8 @@ nexus {
     }
 
     pom {
-        name 'Profile Plugin'
-        description 'Profile configuration for Java Web Project'
+        name 'Node Plugin'
+        description 'Node with gradle'
         url 'https://github.com/alan-yeh/gradle-plugins'
 
         scm {

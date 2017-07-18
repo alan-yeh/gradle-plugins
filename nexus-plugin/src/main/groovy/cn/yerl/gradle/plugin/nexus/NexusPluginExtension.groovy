@@ -8,6 +8,7 @@ import org.gradle.api.Project
  * Created by Alan Yeh on 2016/12/4.
  */
 class NexusPluginExtension {
+    static String NAME = 'nexus'
 
     final Project _project;
     public NexusPluginExtension(Project project){

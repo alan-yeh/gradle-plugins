@@ -11,12 +11,12 @@ import org.gradle.api.tasks.Copy;
  * Pack Plugin
  * Created by Alan Yeh on 2016/12/18.
  */
-public class PackPlugin implements Plugin<Project> {
+class PackPlugin implements Plugin<Project> {
     static final String TASK_GROUP = "pack";
 
     @Override
     void apply(Project project) {
-        PackExtension extension = project.extensions.create('pack', PackExtension);
+        PackExtension extension = project.extensions.create(PackExtension.NAME, PackExtension);
 
         project.afterEvaluate {
         }
@@ -37,6 +37,9 @@ public class PackPlugin implements Plugin<Project> {
 
 
             int i = 1;
+            if (extension.destDirs.size() < 1){
+                extension.destDirs.add("build/packed");
+            }
             extension.destDirs.each {
                 int index = i ++
                 String to = "$it"
@@ -52,13 +55,20 @@ public class PackPlugin implements Plugin<Project> {
 
                 // 复制打包文件
                 Copy copyArchivesTask = project.task("copyArchives_${index}", type: Copy) {
-                    from archivesTask
+                    if (extension.sources.size() > 0){
+                        extension.sources.each {
+                            from it;
+                        }
+                    }else {
+                        from archivesTask
+                    }
                     into to + File.separator + extension.templatePath
                 }
                 copyArchivesTask.description = "Copy archives to path [${copyArchivesTask.destinationDir}]"
 
                 copyArchivesTask.doLast{
                     println "Pack Plugin: Packed to path[${copyTemplateTask.destinationDir}]."
+
                 }
 
                 copyArchivesTask.group = TASK_GROUP

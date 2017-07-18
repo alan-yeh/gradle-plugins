@@ -7,6 +7,7 @@ import org.gradle.api.GradleException
  * Created by Alan Yeh on 2016/11/9.
  */
 class ProfileExtension {
+    static String NAME = 'profile'
 
     // 处理多现场
     def methodMissing(String name, args) {

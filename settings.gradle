@@ -3,4 +3,6 @@ include 'profile-plugin'
 include 'nexus-plugin'
 include 'android-config-plugin'
 include 'pack-plugin'
+include 'vue-plugin'
+include 'node-plugin'
 
