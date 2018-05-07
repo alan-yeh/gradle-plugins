@@ -4,12 +4,14 @@ allprojects{
 
 subprojects{
     apply plugin: 'groovy'
+    apply plugin: 'java'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
 
     repositories {
         mavenLocal()
+        maven { url 'http://maven.minstone.com.cn/content/groups/public/'}
         mavenCentral()
     }
 
@@ -21,6 +23,7 @@ subprojects{
     buildscript {
         repositories {
             mavenLocal()
+            maven { url 'http://maven.minstone.com.cn/content/groups/public/'}
             mavenCentral()
         }
 

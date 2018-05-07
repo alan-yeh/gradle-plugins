@@ -6,15 +6,15 @@ package cn.yerl.gradle.plugin.nexus
 class SignatoryContainer {
     def invokeMethod(String name, args) {
         if (this.hasProperty(name)){
-            sign = Boolean.TRUE;
+            sign = Boolean.TRUE
             setProperty(name, args[0])
         }else {
-            super.invokeMethod(name, args);
+            super.invokeMethod(name, args)
         }
     }
 
-    def sign = Boolean.FALSE;
-    def keyId = '';
-    def password = '';
-    def secretKeyRingFile = '';
+    def sign = Boolean.FALSE
+    def keyId = ''
+    def password = ''
+    def secretKeyRingFile = ''
 }

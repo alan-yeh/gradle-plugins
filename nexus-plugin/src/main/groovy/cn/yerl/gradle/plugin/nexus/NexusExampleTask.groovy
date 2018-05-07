@@ -1,12 +1,12 @@
-package cn.yerl.gradle.plugin.nexus;
+package cn.yerl.gradle.plugin.nexus
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskAction
 
 /**
  * Created by alan on 2016/12/5.
  */
-public class NexusExampleTask extends DefaultTask {
+class NexusExampleTask extends DefaultTask {
     @TaskAction
     def action(){
         description = "Example for nexus plugin configuration"

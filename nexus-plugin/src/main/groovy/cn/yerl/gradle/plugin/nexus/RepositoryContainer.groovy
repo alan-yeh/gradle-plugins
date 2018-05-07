@@ -9,12 +9,12 @@ class RepositoryContainer {
         if (this.hasProperty(name)){
             setProperty(name, args[0])
         }else {
-            super.invokeMethod(name, args);
+            super.invokeMethod(name, args)
         }
     }
 
-    def username = '';
-    def password = '';
-    def release = 'https://oss.sonatype.org/service/local/staging/deploy/maven2';
-    def snapshot = 'https://oss.sonatype.org/content/repositories/snapshots';
+    def username = ''
+    def password = ''
+    def release = 'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+    def snapshot = 'https://oss.sonatype.org/content/repositories/snapshots'
 }

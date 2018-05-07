@@ -1,20 +1,23 @@
+group "com.minstone.mobile"
 version '1.0.1'
 
 apply plugin: 'nexus'
 
 nexus {
     repository {
-        username project.ext["nexus.username"]
-        password project.ext["nexus.password"]
+        username "admin"
+        password "minstone@123"
+        release 'http://maven.minstone.com.cn/content/repositories/md/'
+        snapshot 'http://maven.minstone.com.cn/content/repositories/md/'
     }
 
-    signatory {
-        keyId project.ext["signatory.keyId"]
-        password project.ext["signatory.password"]
+    archive {
+        sources true
+        doc false
     }
 
     pom {
-        name 'Android Config Plugin'
+        name 'Dependencies Customizing Plugin'
         description 'Provide default config for android'
         url 'https://github.com/alan-yeh/gradle-plugins'
 

@@ -11,7 +11,7 @@ class ArchiveContainer {
         if (this.hasProperty(name)){
             setProperty(name, args[0])
         }else {
-            super.invokeMethod(name, args);
+            super.invokeMethod(name, args)
         }
     }
 }

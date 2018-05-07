@@ -4,12 +4,15 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.execution.TaskExecutionGraph
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.MavenPlugin
+import org.gradle.api.plugins.MavenRepositoryHandlerConvention
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.javadoc.Javadoc
@@ -17,54 +20,56 @@ import org.gradle.plugins.signing.SigningPlugin
 
 
 class NexusPlugin implements Plugin<Project> {
-    private NexusPluginExtension extension;
-    private Project project;
+    private NexusPluginExtension extension
+    private Project proj
 
     @Override
     void apply(Project project) {
-        this.project = project;
+        this.proj = project
 
-        project.plugins.apply(MavenPlugin)
-        project.plugins.apply(SigningPlugin)
+        proj.plugins.apply(MavenPlugin)
+        proj.plugins.apply(SigningPlugin)
 
-        extension = project.extensions.create(NexusPluginExtension.NAME, NexusPluginExtension.class, project);
+        extension = proj.extensions.create(NexusPluginExtension.NAME, NexusPluginExtension.class, proj)
 
         configureArchiveTasks()
         configureSigning()
         configurePom()
         configureUpload()
+        configureInstall()
         configureExampleTask()
     }
 
     private boolean isRootProject(){
-        project.rootProject == project;
+        proj.rootProject == proj
     }
+
     private getUploadTaskPath(){
-        this.isRootProject() ? ":$uploadTaskName" : "${project.path}:$uploadTaskName"
+        this.isRootProject() ? ":$UPLOAD_TASK_NAME" : "${proj.path}:$UPLOAD_TASK_NAME"
     }
 
     private getInstallTaskPath(){
-        this.isRootProject() ? ":$MavenPlugin.INSTALL_TASK_NAME" : "$project.path:$MavenPlugin.INSTALL_TASK_NAME"
+        this.isRootProject() ? ":$INSTALL_TASK_NAME" : "$proj.path:$INSTALL_TASK_NAME"
     }
 
-    private getUploadTaskName(){
-        "upload${Dependency.ARCHIVES_CONFIGURATION.capitalize()}"
-    }
 
+    private static final String UPLOAD_TASK_NAME = "uploadArchives"
+    private static final String INSTALL_TASK_NAME = "installArchives"
+    private static final String NEXUS_TASK_GROUP = "nexus"
 
     private void configureSigning() {
-        project.afterEvaluate {
+        proj.afterEvaluate {
             if(extension.signatoryContainer.sign) {
-                project.signing {
+                proj.signing {
                     required {
                         // Gradle allows project.version to be of type Object and always uses the toString() representation.
-                        project.gradle.taskGraph.hasTask(this.uploadTaskPath) && !project.version.toString().endsWith('SNAPSHOT')
+                        proj.gradle.taskGraph.hasTask(this.uploadTaskPath) && !proj.version.toString().endsWith('SNAPSHOT')
                     }
 
-                    sign project.configurations[Dependency.ARCHIVES_CONFIGURATION]
+                    sign proj.configurations[Dependency.ARCHIVES_CONFIGURATION]
 
-                    project.gradle.taskGraph.whenReady {
-                        if(project.signing.required) {
+                    proj.gradle.taskGraph.whenReady {
+                        if(proj.signing.required) {
                             getPrivateKeyForSigning()
                         }
 
@@ -77,91 +82,92 @@ class NexusPlugin implements Plugin<Project> {
     }
 
     private void getPrivateKeyForSigning() {
-        SignatoryContainer signatory = extension.signatoryContainer;
+        SignatoryContainer signatory = extension.signatoryContainer
 
         if (signatory.keyId.isEmpty()){
-            throw new GradleException("A GnuPG key ID is required for signing. Please set up nexus.signing.keyId.")
+            throw new GradleException("签名(Signing)任务需要配置 GnuPG Key，请在Gradle中配置签名信息[nexus.signing.keyId]")
         }
 
-        project.ext.set("signing.keyId", signatory.keyId);
+        proj.ext.set("signing.keyId", signatory.keyId);
 
 
         File keyringFile =  signatory.secretKeyRingFile.isEmpty() ?
-                new File(new File(System.getProperty('user.home'), '.gnupg'), 'secring.gpg') : project.file(signatory.secretKeyRingFile)
+                new File(new File(System.getProperty('user.home'), '.gnupg'), 'secring.gpg') : proj.file(signatory.secretKeyRingFile)
 
         if (!keyringFile.exists()){
-            throw new GradleException("GnuPG secret key file $keyringFile not found. Please set up nexus.signing.secretKeyRingFile '/path/to/file.gpg'")
+            throw new GradleException("没有找到GnuPG 密钥[$keyringFile]，请在Gradle中指定密钥地址[nexus.signing.secretKeyRingFile]")
         }else {
-            project.ext.set('signing.secretKeyRingFile', keyringFile.getPath())
+            proj.ext.set('signing.secretKeyRingFile', keyringFile.getPath())
         }
 
-        printf "\nThis release $project.version will be signed with your GnuPG key ${signatory.keyId} in $keyringFile.\n"
+        printf("\n该版本[$proj.version]将使用 GnuPg 密钥[${signatory.keyId}, $keyringFile]进行签名")
 
         if (signatory.password.isEmpty()){
-            throw new GradleException("Password for GnuPG key is required. Please set up nexus.signing.password 'password_for_key'");
+            throw new GradleException("请在Gradle中配置GnuPG的密钥密码[nexus.signing.password]")
         }else {
-            project.ext.set('signing.password', signatory.password)
+            proj.ext.set('signing.password', signatory.password)
         }
     }
 
     private void signPomForUpload() {
-        def uploadTasks = project.tasks.withType(Upload).matching { it.path == this.uploadTaskPath }
+        def uploadTasks = proj.tasks.withType(Upload).matching { it.path == this.uploadTaskPath }
 
         uploadTasks.each { task ->
             task.repositories.mavenDeployer() {
                 beforeDeployment { MavenDeployment deployment ->
-                    project.signing.signPom(deployment)
+                    proj.signing.signPom(deployment)
                 }
             }
         }
     }
 
     private void signInstallPom() {
-        def installTasks = project.tasks.withType(Upload).matching { it.path == this.installTaskPath }
+        def installTasks = proj.tasks.withType(Upload).matching { it.path == this.installTaskPath }
 
         installTasks.each { task ->
             task.repositories.mavenInstaller() {
                 beforeDeployment { MavenDeployment deployment ->
-                    project.signing.signPom(deployment)
+                    proj.signing.signPom(deployment)
                 }
             }
         }
     }
 
     private void configurePom() {
-        project.afterEvaluate {
-            project.ext.poms = []
-            Task installTask = project.tasks.findByPath(MavenPlugin.INSTALL_TASK_NAME)
+        proj.afterEvaluate {
+            proj.ext.poms = []
+            Task installTask = proj.tasks.findByPath(INSTALL_TASK_NAME)
 
             if (installTask) {
-                project.ext.poms << installTask.repositories.mavenInstaller().pom
+                proj.ext.poms << installTask.repositories.mavenInstaller().pom
             }
 
-            project.ext.poms << project.tasks.getByName(this.uploadTaskName).repositories.mavenDeployer().pom
+            proj.ext.poms << proj.tasks.getByName(UPLOAD_TASK_NAME).repositories.mavenDeployer().pom
         }
     }
 
     // 配置上传
     private void configureUpload() {
-        project.afterEvaluate {
-            project.tasks.getByName(this.uploadTaskName){
+        proj.afterEvaluate {
+            proj.tasks.getByName(UPLOAD_TASK_NAME){
                 group = NEXUS_TASK_GROUP
+                description = "将归档[Archives]上传到远程Nexus仓库"
             }
-            project.tasks.getByName(this.uploadTaskName).repositories.mavenDeployer() {
-                project.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
+            proj.tasks.getByName(UPLOAD_TASK_NAME).repositories.mavenDeployer() {
+                proj.gradle.taskGraph.whenReady { TaskExecutionGraph taskGraph ->
                     if(taskGraph.hasTask(this.uploadTaskPath)) {
 
-                        RepositoryContainer repo = extension.repositoryContainer;
+                        RepositoryContainer repo = extension.repositoryContainer
 
                         if (repo.username.isEmpty()){
-                            throw new GradleException("Username for sonatype manager is Required. Please set up nexus.repository.username.");
+                            throw new GradleException("请在Gradle中配置用户名[nexus.repository.username]")
                         }
 
                         if (repo.password.isEmpty()){
-                            throw new GradleException("Password for sonatype manager is Required. Please set up nexus.repository.password.");
+                            throw new GradleException("请在Gradle中配置密码[nexus.repository.password]")
                         }
 
-                        if (project.version.toString().endsWith('SNAPSHOT')){
+                        if (proj.version.toString().endsWith('SNAPSHOT')){
                             repository(url: repo.snapshot){
                                 authentication(userName: repo.username, password: repo.password)
                             }
@@ -176,72 +182,84 @@ class NexusPlugin implements Plugin<Project> {
         }
     }
 
-    static final String NEXUS_TASK_GROUP = "nexus";
+    private void configureInstall(){
+        Upload installUpload = (Upload)proj.getTasks().create("installArchives", Upload.class)
+        installUpload.group = NEXUS_TASK_GROUP
+
+        Configuration configuration = proj.getConfigurations().getByName("archives")
+        installUpload.setConfiguration(configuration)
+        MavenRepositoryHandlerConvention repositories = (MavenRepositoryHandlerConvention)(new DslObject(installUpload.getRepositories())).getConvention().getPlugin(MavenRepositoryHandlerConvention.class)
+        repositories.mavenInstaller()
+        installUpload.setDescription("将归档[Artifacts]安装到本地Maven仓库")
+    }
+    
+
 
     // 配置上传的包
     private void configureArchiveTasks(){
-        project.afterEvaluate{
-            project.plugins.withType(JavaPlugin){
+        proj.afterEvaluate{
+            proj.plugins.withType(JavaPlugin){
 
                 if (extension.archiveContainer.sources){
-                    Task task = project.task("javaSourcesJar", type: Jar) {
+                    Task task = proj.task("javaSourcesJar", type: Jar) {
                         classifier = 'sources'
                         group = NEXUS_TASK_GROUP
-                        description = 'Assembles a jar archive containing the main sources of this project.'
-                        from project.sourceSets.main.allSource
+                        description = "打包此项目的源代码成Jar格式归档"
+                        from proj.sourceSets.main.allSource
                     }
-                    project.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
+                    proj.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
                 }
 
                 if (extension.archiveContainer.doc){
-                    Task task = project.task("javadocJar", type: Jar) {
+                    Task task = proj.task("javadocJar", type: Jar) {
                         classifier = 'javadoc'
                         group = NEXUS_TASK_GROUP
-                        description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-                        from project.tasks.getByName(project.plugins.hasPlugin(GroovyPlugin) ? GroovyPlugin.GROOVYDOC_TASK_NAME : JavaPlugin.JAVADOC_TASK_NAME)
+                        description = "生成此项目的JavaDoc接口文档，并打包成Jar格式归档"
+                        from proj.tasks.getByName(proj.plugins.hasPlugin(GroovyPlugin) ? GroovyPlugin.GROOVYDOC_TASK_NAME : JavaPlugin.JAVADOC_TASK_NAME)
                     }
 
-                    project.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
+                    proj.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
                 }
             }
 
-            if (project.hasProperty("android")){
+            if (proj.hasProperty("android")){
                 if (extension.archiveContainer.sources){
-                    Task task = project.task("androidSourcesJar", type: Jar) {
+                    Task task = proj.task("androidSourcesJar", type: Jar) {
                         classifier = 'sources'
                         group = NEXUS_TASK_GROUP
-                        description = 'Assembles a jar archive containing the main sources of this project.'
-                        from project.android.sourceSets.main.java.srcDirs
+                        description = "打包此项目的源代码成Jar格式归档"
+                        from proj.android.sourceSets.main.java.srcDirs
                     }
-                    project.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
+
+                    proj.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
                 }
 
                 if (extension.archiveContainer.doc){
-                    Task androidJavadocTask = project.task("androidJavadoc", type: Javadoc){
+                    Task androidJavadocTask = proj.task("androidJavadoc", type: Javadoc){
                         group = NEXUS_TASK_GROUP
-                        description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-                        source = project.android.sourceSets.main.java.srcDirs
-                        classpath += project.files(project.android.getBootClasspath().join(File.pathSeparator))
+                        description = "生成此项目的JavaDoc接口文档"
+                        source = proj.android.sourceSets.main.java.srcDirs
+                        classpath += proj.files(proj.android.getBootClasspath().join(File.pathSeparator))
                         options.encoding = "UTF-8"
                     }
 
-                    Task task = project.task("androidJavadocJar", type: Jar) {
+                    Task task = proj.task("androidJavadocJar", type: Jar) {
                         classifier = 'javadoc'
                         group = NEXUS_TASK_GROUP
-                        description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+                        description = "将此项目的JavaDoc接口文档打包成Jar格式归档"
                         from androidJavadocTask.destinationDir
                     }
                     task.dependsOn(androidJavadocTask)
 
-                    project.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
+                    proj.artifacts.add(Dependency.ARCHIVES_CONFIGURATION, task);
                 }
             }
         }
     }
 
     private void configureExampleTask(){
-        project.afterEvaluate{
-            project.task("nexusExample", type: NexusExampleTask){
+        proj.afterEvaluate{
+            proj.task("nexusExample", type: NexusExampleTask){
                 group = NEXUS_TASK_GROUP
             }
         }

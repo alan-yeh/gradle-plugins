@@ -1,0 +1,5 @@
+{
+  "dubbo": "1.1.0",
+  "spring-cloud": "1.0.0",
+  "JFINAL": "2.0"
+}
